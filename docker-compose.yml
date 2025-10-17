@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  # 🗄️ PostgreSQL Database
   db:
     image: postgres:15
     container_name: palpay_postgres
@@ -13,6 +14,49 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - palpay_net
+
+  # 🧱 Laravel Backend (API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: palpay_backend
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    command: >
+      sh -c "composer install &&
+             php artisan key:generate &&
+             php artisan migrate &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+    networks:
+      - palpay_net
+
+  # 💻 React Frontend (Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: palpay_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    command: >
+      sh -c "npm install && npm run dev -- --host"
     networks:
       - palpay_net
 

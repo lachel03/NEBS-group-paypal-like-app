@@ -70,8 +70,13 @@ Route::post('/login', function (Request $request) {
         }
 
         $google2fa = app('pragmarx.google2fa');
-        $secret    = decrypt($user->two_factor_secret);
-        $valid     = $google2fa->verifyKey($secret, $validated['otp']);
+        try {
+			$secret = decrypt($user->two_factor_secret);
+			$valid  = $google2fa->verifyKey($secret, $validated['otp']);
+		} catch (\Exception $e) {
+			return response()->json(['message' => 'Invalid or corrupted 2FA secret. Please reset 2FA.'], 400);
+		}
+
 
         if (! $valid) {
             RateLimiter::hit($key, 60);
