@@ -125,14 +125,6 @@ php artisan route:list
 
 ---
 
-## 👥 Group Members
-- **Kyle Laurence Biteng**
-- **Rein Irish Santos**
-- **Lance Christian Elane**
-- **Mary Napala**
-
----
-
 ## 📘 Next Steps
 - Integrate **React Login & Register** forms with backend API  
 - Build 2FA setup UI and user dashboard  
