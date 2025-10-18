@@ -1,4 +1,4 @@
-# 🏦 PalPay Group App — Full-Stack Authentication System
+# 💳 PayPal-like Web Application with Secure Authentication and 2FA
 
 A secure full-stack authentication and account management platform built with **Laravel 12 (PHP 8.2)**, **PostgreSQL 15**, **Docker Compose**, and **React + Vite + Tailwind v4**.
 
