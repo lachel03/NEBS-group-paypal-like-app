@@ -1,66 +1,76 @@
-import Login from './pages/Login';
+import { useState, useEffect } from "react";
+import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from './pages/Dashboard';
-import { useState } from "react";
-
+import Dashboard from "./pages/Dashboard";
+import api from "./api/axios";
 
 function App() {
-  const [user, setUser] = useState(null); 
-  const [currentPage, setCurrentPage] = useState("login"); 
+  const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState("login");
 
-  const handleLogin = () => {
-    // Real login logic
-    setUser({
-      full_name: 'Lance Elane',
-      email: 'lance@example.com',
-      mobile_number: '+639123456789',
-      two_factor_enabled: false,
-      is_verified: true,
-      last_login_at: '2025-01-15 14:30:22',
-      last_login_ip: '192.168.1.100',
-      created_at: '2024-06-15'
-    });
+  // ✅ On mount: check if already logged in
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+      setCurrentPage("dashboard");
+    }
+  }, []);
+
+  // ✅ When login succeeds
+  const handleLoginSuccess = (loggedInUser) => {
+    setUser(loggedInUser);
+    setCurrentPage("dashboard");
   };
 
-  const handleLogout = () => {
-    setUser(null);
+  // ✅ When registration succeeds
+  const handleRegisterSuccess = () => {
     setCurrentPage("login");
   };
 
-  const handleToggle2FA = (status) => {
-    setUser(prev => ({ ...prev, two_factor_enabled: status }));
+  // ✅ Handle logout (with backend sync)
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+    } catch (e) {
+      console.warn("Logout failed (ignored):", e.message);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setCurrentPage("login");
+    }
   };
 
-  const handleRegister = (data) => {
-    console.log("Registered user:", data);
-    alert("Registered successfully!");
-    setCurrentPage("login"); 
+  // ✅ Toggle 2FA locally for Dashboard
+  const handleToggle2FA = (enabled) => {
+    setUser((prev) => ({ ...prev, two_factor_enabled: enabled }));
   };
 
-  if (user) {
-    return (
-      <Dashboard
-        user={user}
-        onLogout={handleLogout}
-        onToggle2FA={handleToggle2FA}
-      />
-    );
-  }
-
-  if (currentPage === "login") {
-    return (
-      <Login
-        onLogin={handleLogin}
-        switchToRegister={() => setCurrentPage("register")}
-      />
-    );
-  }
-
+  // ✅ Render logic
   return (
-    <Register
-      onRegister={handleRegister}
-      switchToLogin={() => setCurrentPage("login")}
-    />
+    <>
+      {currentPage === "login" && !user && (
+        <Login
+          switchToRegister={() => setCurrentPage("register")}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+
+      {currentPage === "register" && (
+        <Register switchToLogin={handleRegisterSuccess} />
+      )}
+
+      {currentPage === "dashboard" && user && (
+        <Dashboard
+          user={user}
+          onLogout={handleLogout}
+          onToggle2FA={handleToggle2FA}
+        />
+      )}
+    </>
   );
 }
 

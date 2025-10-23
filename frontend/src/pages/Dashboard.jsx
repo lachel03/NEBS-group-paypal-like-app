@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import api from "../api/axios";
 
 export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, onRequestMoney }) {
   const [show2FAModal, setShow2FAModal] = useState(false);
@@ -12,7 +13,6 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     amount: '',
     note: ''
   });
-
   const [receiveAmount, setReceiveAmount] = useState('');
 
   // User Data
@@ -20,8 +20,8 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     fullName: user?.full_name || 'Lance Elane',
     email: user?.email || 'lance@example.com',
     mobileNumber: user?.mobile_number || '+639123456789',
-    accountNumber: '****7890',
-    balance: '₱125,430.50',
+    accountNumber: '****7890 PlaceHolder',
+    balance: 'Place Holder',
     isVerified: user?.is_verified || true,
     twoFactorEnabled: twoFactorEnabled,
     lastLogin: user?.last_login_at || '2025-01-15 14:30:22',
@@ -108,12 +108,6 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     }
   };
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
-  };
-
   const handleSendMoney = () => {
     if (sendForm.recipient && sendForm.amount) {
       if (onSendMoney) {
@@ -169,7 +163,7 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
               </div>
               
               <button
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="flex items-center space-x-2 px-4 py-2 bg-red-500 bg-opacity-20 border border-red-400 border-opacity-30 rounded-lg text-red-400 hover:bg-opacity-30 transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

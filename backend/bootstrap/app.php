@@ -16,9 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
 		$middleware->use([
 			\Illuminate\Http\Middleware\HandleCors::class,
 		]);
-
-		// Sanctum for API authentication
-		$middleware->statefulApi();
 	})
 
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -1,16 +1,16 @@
 import axios from "axios";
 
-// Automatically pick up base URL from your environment file (.env)
+// ✅ Auto-detect base URL or default to your local API prefix
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api",
-  withCredentials: true, // 🔒 allows sending cookies & Sanctum tokens
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: false, // ✅ ensure no CSRF/cookie mode is used
 });
 
-// OPTIONAL: Automatically attach Bearer token if stored in localStorage
+// ✅ Automatically attach Bearer token if it exists in localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {

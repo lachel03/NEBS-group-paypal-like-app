@@ -1,0 +1,17 @@
+# Ignore Node dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ignore build artifacts
+dist
+build
+
+# Ignore environment and local config files
+.env
+.DS_Store
+*.local
+
+# Ignore git
+.git
+.gitignore
