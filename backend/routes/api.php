@@ -19,14 +19,16 @@ Route::get('/test', fn() => response()->json(['message' => 'API route working!']
 // ---------- REGISTER ----------
 Route::post('/register', function (Request $request) {
     $validated = $request->validate([
-        'name'     => 'required|string|max:255',
-        'email'    => 'required|email|unique:users,email',
-        'password' => 'required|string|min:8',
+        'full_name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'mobile_number' => 'required|string|min:10|max:15|unique:users,mobile_number',
+        'password' => 'required|string|min:8|confirmed',
     ]);
 
     $user = User::create([
-        'name'     => $validated['name'],
-        'email'    => $validated['email'],
+        'full_name' => $validated['full_name'],
+        'email' => $validated['email'],
+        'mobile_number' => $validated['mobile_number'],
         'password' => Hash::make($validated['password']),
     ]);
 
@@ -34,8 +36,13 @@ Route::post('/register', function (Request $request) {
 
     return response()->json([
         'message' => 'User registered successfully.',
-        'user'    => $user,
-        'token'   => $token,
+        'user' => [
+            'id' => $user->id,
+            'full_name' => $user->full_name,
+            'email' => $user->email,
+            'mobile_number' => $user->mobile_number,
+        ],
+        'token' => $token,
     ], 201);
 });
 
