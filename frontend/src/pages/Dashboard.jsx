@@ -34,7 +34,7 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     balance: "Example Balance",
     isVerified: user?.is_verified ?? true,
     twoFactorEnabled: twoFactorEnabled,
-    lastLogin: user?.last_login_at || "Loading...",
+    lastLogin: user?.last_login_at_fmt || user?.last_login_at || "Loading...",
     lastLoginIp: user?.last_login_ip || "Loading...",
     lastLoginBrowser: user?.last_login_browser || "Loading...",
     accountCreated: user?.created_at || "Loading...",

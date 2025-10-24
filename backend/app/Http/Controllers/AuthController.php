@@ -219,5 +219,31 @@ class AuthController extends Controller
 		// Fallback to the full UA if we can’t parse a neat label
 		return $ua;
 	}
+	
+	public function logs(Request $request)
+    {
+        // last 10 logs for this user, newest first
+        $logs = LoginLog::where('user_id', $request->user()->id)
+            ->latest()
+            ->take(10)
+            ->get(['ip_address', 'user_agent', 'created_at']);
 
+        // shape + format
+        $data = $logs->map(function ($log) {
+            return [
+                'ip_address'      => $log->ip_address,
+                'user_agent'      => $log->user_agent,
+                'browser_label'   => $this->parseBrowser($log->user_agent),
+                'created_at'      => $log->created_at,
+                'created_at_fmt'  => optional($log->created_at)
+                    ? $log->created_at->timezone(config('app.timezone'))->format('M j, Y g:i A')
+                    : null,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Recent login activity fetched successfully.',
+            'data'    => $data,
+        ]);
+    }
 }

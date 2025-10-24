@@ -23,5 +23,35 @@ class User extends Authenticatable {
         'email_verified_at' => 'datetime',
         'two_factor_enabled' => 'boolean',
         'last_login_at' => 'datetime',
+		'created_at'    => 'datetime',
+		'updated_at'    => 'datetime',
     ];
+	
+	protected $appends = [
+		'last_login_at_fmt',
+		'created_at_fmt',
+		'updated_at_fmt',
+		'email_verified_at_fmt',
+	];
+	
+	public function getLastLoginAtFmtAttribute(): ?string
+	{
+		return $this->last_login_at
+			? $this->last_login_at->timezone(config('app.timezone'))->format('M j, Y g:i A')
+			: null;
+	}
+
+	public function getCreatedAtFmtAttribute(): ?string
+	{
+		return $this->created_at
+			? $this->created_at->timezone(config('app.timezone'))->format('M j, Y g:i A')
+			: null;
+	}
+
+	public function getUpdatedAtFmtAttribute(): ?string
+	{
+		return $this->updated_at
+			? $this->updated_at->timezone(config('app.timezone'))->format('M j, Y g:i A')
+			: null;
+	}
 }
