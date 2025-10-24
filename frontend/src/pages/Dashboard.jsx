@@ -36,18 +36,14 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     twoFactorEnabled: twoFactorEnabled,
     lastLogin: user?.last_login_at || "Loading...",
     lastLoginIp: user?.last_login_ip || "Loading...",
-    lastLoginBrowser: "Loading...",
+    lastLoginBrowser: user?.last_login_browser || "Loading...",
     accountCreated: user?.created_at || "Loading...",
   };
 
   // Example transactions (static for now)
   const transactions = [
-    { id: 1, type: "receive", amount: "₱5,000.00", recipient: "Rein Santos", sender: "Rein Santos", note: "Payment for services", timestamp: "2025-01-20 10:30:15", status: "completed" },
-    { id: 2, type: "send", amount: "₱2,500.00", recipient: "Kyle Biteng", sender: "You", note: "Dinner payment", timestamp: "2025-01-19 18:45:30", status: "completed" },
-    { id: 3, type: "receive", amount: "₱10,000.00", recipient: "Mary Napala", sender: "Mary Napala", note: "Freelance work payment", timestamp: "2025-01-18 14:20:00", status: "completed" },
-    { id: 4, type: "send", amount: "₱1,200.00", recipient: "Kyle Biteng", sender: "You", note: "Groceries split", timestamp: "2025-01-17 09:15:45", status: "completed" },
-    { id: 5, type: "send", amount: "₱3,500.00", recipient: "Randy Lagdaan", sender: "You", note: "Birthday gift", timestamp: "2025-01-16 16:30:22", status: "pending" },
-    { id: 6, type: "receive", amount: "₱7,800.00", recipient: "Rein Santos", sender: "Rein Santos", note: "Rent contribution", timestamp: "2025-01-15 11:00:00", status: "completed" },
+    { id: 1, type: "receive", amount: "₱100.00", recipient: "Rein Santos", sender: "Example Sender", note: "Example Receiving Money", timestamp: "2025-01-20 10:30:15", status: "completed" },
+    { id: 2, type: "send", amount: "₱100.00", recipient: "Example Recipient", sender: "You", note: "Example Sending Money", timestamp: "2025-01-19 18:45:30", status: "completed" },
   ];
 
   // ----- 2FA handlers -----
@@ -195,6 +191,15 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
                   Transactions
                 </button>
               </div>
+			  
+				<button
+				  onClick={onViewLogs}
+				  className="hidden md:flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 border border-cyan-400 border-opacity-30 rounded-lg text-cyan-300 transition">
+				  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+				  </svg>
+				  <span>View Login Logs</span>
+				</button>
 
               <button
                 onClick={onLogout}
@@ -205,15 +210,6 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
                 </svg>
                 <span className="hidden sm:inline">Logout</span>
               </button>
-			  
-			  <button
-			  onClick={onViewLogs}
-			  className="hidden md:flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 border border-cyan-400 border-opacity-30 rounded-lg text-cyan-300 transition">
-			  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-			  </svg>
-			  <span>View Login Logs</span>
-			</button>
 			  
             </div>
           </div>

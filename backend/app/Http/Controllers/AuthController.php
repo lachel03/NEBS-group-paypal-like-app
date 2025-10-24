@@ -99,6 +99,7 @@ class AuthController extends Controller
         $data = [];
         if (Schema::hasColumn('users', 'last_login_at')) $data['last_login_at'] = now();
         if (Schema::hasColumn('users', 'last_login_ip')) $data['last_login_ip'] = $request->ip();
+		if (Schema::hasColumn('users', 'last_login_browser')) $data['last_login_browser'] = $this->parseBrowser($request->userAgent());
         if ($data) $user->forceFill($data)->save();
 
         // Activity log
@@ -190,4 +191,33 @@ class AuthController extends Controller
 
         return response()->json(['message' => '2FA disabled successfully.']);
     }
+	
+	private function parseBrowser(?string $ua): ?string
+	{
+		if (!$ua) return null;
+
+		// Edge (Chromium)
+		if (preg_match('/Edg\/([\d\.]+)/', $ua, $m)) {
+			return 'Edge ' . $m[1];
+		}
+		// Chrome (ignore Edge’s UA which also contains "Chrome")
+		if (preg_match('/Chrome\/([\d\.]+)/', $ua, $m) && stripos($ua, 'Edg/') === false) {
+			return 'Chrome ' . $m[1];
+		}
+		// Firefox
+		if (preg_match('/Firefox\/([\d\.]+)/', $ua, $m)) {
+			return 'Firefox ' . $m[1];
+		}
+		// Safari (exclude Chrome/Edge)
+		if (stripos($ua, 'Safari/') !== false && stripos($ua, 'Chrome/') === false && stripos($ua, 'Edg/') === false) {
+			if (preg_match('/Version\/([\d\.]+)/', $ua, $m)) {
+				return 'Safari ' . $m[1];
+			}
+			return 'Safari';
+		}
+
+		// Fallback to the full UA if we can’t parse a neat label
+		return $ua;
+	}
+
 }

@@ -14,7 +14,7 @@ class User extends Authenticatable {
     protected $fillable = [
         'full_name','email','password',
         'two_factor_secret','two_factor_enabled',
-        'last_login_at','last_login_ip',
+        'last_login_at','last_login_ip','last_login_browser',
         'mobile_number','is_verified',
     ];
 
