@@ -1,8 +1,10 @@
 import { useState } from "react";
 import api from "../api/axios";
 
-export default function Login({ switchToRegister, onLoginSuccess }) {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+export default function Login({ switchToRegister, onLoginSuccess, ensureCsrf }) {
+  const [formData, setFormData] = useState({ email: "", password: "", otp: "" });
+  const [requires2FA, setRequires2FA] = useState(false);
+
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ message: "", type: "" });
   const [loading, setLoading] = useState(false);
@@ -15,10 +17,16 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
     if (status.message) setStatus({ message: "", type: "" });
   };
 
-  const handleSubmit = async () => {
+  const validate = () => {
     const newErrors = {};
     if (!formData.email.trim()) newErrors.email = "Email is required";
     if (!formData.password.trim()) newErrors.password = "Password is required";
+    if (requires2FA && !formData.otp.trim()) newErrors.otp = "OTP is required";
+    return newErrors;
+  };
+
+  const handleSubmit = async () => {
+    const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -26,25 +34,53 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
 
     try {
       setLoading(true);
-      const res = await api.post("/login", formData);
+      if (ensureCsrf) await ensureCsrf();
 
-      // Save token & user in localStorage
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const payload = {
+        email: formData.email,
+        password: formData.password,
+        ...(requires2FA && formData.otp ? { otp: formData.otp } : {}),
+      };
+
+      const res = await api.post("/login", payload, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
 
       setStatus({ message: "Login successful!", type: "success" });
-
-      // Optional: callback to switch page
-      setTimeout(() => {
-        if (onLoginSuccess) onLoginSuccess(res.data.user);
-      }, 1000);
+      setTimeout(() => onLoginSuccess?.(res.data.user), 600);
     } catch (error) {
-      console.error("Login error:", error);
-      const msg =
-        error.response?.data?.message || "Invalid credentials or network error.";
+      // 2FA required flow
+      if (error?.response?.status === 412 && error.response.data?.requires_2fa) {
+        setRequires2FA(true);
+        setStatus({ message: "Enter your 6-digit authenticator code.", type: "error" });
+        return;
+      }
+
+      // Laravel validation errors
+      if (error?.response?.status === 422 && error.response.data?.errors) {
+        const serverErrors = error.response.data.errors;
+        const mapped = { email: "email", password: "password", otp: "otp" };
+        const newErrs = {};
+        Object.entries(serverErrors).forEach(([key, msgs]) => {
+          const k = mapped[key] || key;
+          newErrs[k] = Array.isArray(msgs) ? msgs[0] : String(msgs);
+        });
+        setErrors(newErrs);
+        setStatus({ message: "Please fix the highlighted fields.", type: "error" });
+        return;
+      }
+
+      const msg = error.response?.data?.message || "Invalid credentials or network error.";
       setStatus({ message: msg, type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
@@ -72,22 +108,12 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
               Access your account securely and manage your funds with confidence.
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4" onKeyDown={handleKeyDown}>
               {/* EMAIL */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                   </svg>
                 </div>
                 <input
@@ -96,30 +122,19 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Email"
+                  autoComplete="email"
                   className={`w-full pl-12 pr-4 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.email ? "border-red-500" : "border-cyan-500 border-opacity-30"
                   } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition`}
                 />
-                {errors.email && (
-                  <p className="text-red-400 text-xs mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
               </div>
 
               {/* PASSWORD */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                   </svg>
                 </div>
                 <input
@@ -128,10 +143,9 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Password"
+                  autoComplete="current-password"
                   className={`w-full pl-12 pr-12 py-3 bg-slate-800 bg-opacity-50 border ${
-                    errors.password
-                      ? "border-red-500"
-                      : "border-cyan-500 border-opacity-30"
+                    errors.password ? "border-red-500" : "border-cyan-500 border-opacity-30"
                   } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition`}
                 />
                 <button
@@ -141,20 +155,36 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
                 >
                   {showPassword ? "🙈" : "👁️"}
                 </button>
-                {errors.password && (
-                  <p className="text-red-400 text-xs mt-1">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
               </div>
+
+              {/* OTP (only when required) */}
+              {requires2FA && (
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    name="otp"
+                    value={formData.otp}
+                    onChange={handleChange}
+                    placeholder="2FA Code (6 digits)"
+                    inputMode="numeric"
+                    maxLength={6}
+                    className={`w-full pl-12 pr-4 py-3 bg-slate-800 bg-opacity-50 border ${
+                      errors.otp ? "border-red-500" : "border-cyan-500 border-opacity-30"
+                    } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition tracking-widest`}
+                  />
+                  {errors.otp && <p className="text-red-400 text-xs mt-1">{errors.otp}</p>}
+                </div>
+              )}
 
               {/* STATUS MESSAGE */}
               {status.message && (
-                <p
-                  className={`text-center mt-4 text-sm ${
-                    status.type === "success"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
+                <p className={`text-center mt-4 text-sm ${status.type === "success" ? "text-green-400" : "text-red-400"}`}>
                   {status.message}
                 </p>
               )}
@@ -164,12 +194,10 @@ export default function Login({ switchToRegister, onLoginSuccess }) {
                 onClick={handleSubmit}
                 disabled={loading}
                 className={`w-full mt-6 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold py-3 rounded-lg shadow-lg shadow-cyan-500/50 transition transform ${
-                  loading
-                    ? "opacity-70 cursor-not-allowed"
-                    : "hover:scale-105 hover:shadow-cyan-400/60"
+                  loading ? "opacity-70 cursor-not-allowed" : "hover:scale-105 hover:shadow-cyan-400/60"
                 }`}
               >
-                {loading ? "Signing in..." : "Login"}
+                {loading ? (requires2FA ? "Verifying..." : "Signing in...") : (requires2FA ? "Verify & Login" : "Login")}
               </button>
 
               {/* LINK */}

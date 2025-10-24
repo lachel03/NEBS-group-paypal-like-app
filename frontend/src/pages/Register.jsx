@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api/axios";
 
-export default function Register({ switchToLogin }) {
+export default function Register({ switchToLogin, ensureCsrf }) {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -65,7 +65,10 @@ export default function Register({ switchToLogin }) {
     try {
       setLoading(true);
 
-      // ✅ Step 2: Send register request
+      // ✅ Session/CSRF bootstrap
+      if (ensureCsrf) await ensureCsrf();
+
+      // ✅ Send register request (session-based)
       const payload = {
         full_name: formData.fullName,
         email: formData.email,
@@ -85,15 +88,43 @@ export default function Register({ switchToLogin }) {
       });
 
       // Optional redirect
-      setTimeout(() => switchToLogin(), 2000);
+      setTimeout(() => switchToLogin(), 1200);
     } catch (error) {
       console.error("Registration error:", error);
-      const msg =
-        error.response?.data?.message ||
-        "Registration failed. Please try again.";
-      setStatus({ message: msg, type: "error" });
+
+      // Laravel validation errors (422)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const serverErrors = error.response.data.errors;
+        // Map backend keys → local input names
+        const mapped = {
+          full_name: "fullName",
+          email: "email",
+          mobile_number: "mobileNumber",
+          password: "password",
+          password_confirmation: "confirmPassword",
+        };
+        const newErrs = {};
+        Object.entries(serverErrors).forEach(([key, msgs]) => {
+          const localKey = mapped[key] || key;
+          newErrs[localKey] = Array.isArray(msgs) ? msgs[0] : String(msgs);
+        });
+        setErrors(newErrs);
+        setStatus({ message: "Please fix the highlighted fields.", type: "error" });
+      } else {
+        const msg =
+          error.response?.data?.message ||
+          "Registration failed. Please try again.";
+        setStatus({ message: msg, type: "error" });
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
@@ -173,7 +204,7 @@ export default function Register({ switchToLogin }) {
               confidence.
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4" onKeyDown={handleKeyDown}>
               {/* FULL NAME */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
@@ -197,6 +228,7 @@ export default function Register({ switchToLogin }) {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Full Name"
+                  autoComplete="name"
                   className={`w-full pl-12 pr-4 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.fullName
                       ? "border-red-500"
@@ -231,6 +263,7 @@ export default function Register({ switchToLogin }) {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Email Address"
+                  autoComplete="email"
                   className={`w-full pl-12 pr-4 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.email
                       ? "border-red-500"
@@ -265,6 +298,7 @@ export default function Register({ switchToLogin }) {
                   value={formData.mobileNumber}
                   onChange={handleChange}
                   placeholder="Mobile Number"
+                  autoComplete="tel"
                   className={`w-full pl-12 pr-4 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.mobileNumber
                       ? "border-red-500"
@@ -301,6 +335,7 @@ export default function Register({ switchToLogin }) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Password"
+                  autoComplete="new-password"
                   className={`w-full pl-12 pr-12 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.password
                       ? "border-red-500"
@@ -378,6 +413,7 @@ export default function Register({ switchToLogin }) {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirm Password"
+                  autoComplete="new-password"
                   className={`w-full pl-12 pr-12 py-3 bg-slate-800 bg-opacity-50 border ${
                     errors.confirmPassword
                       ? "border-red-500"
