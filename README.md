@@ -1,7 +1,3 @@
-Here’s an updated README that matches what we’ve built now (session-based Sanctum + CSRF, 2FA, logs, formatted dates, browser capture, Docker fixes, React wiring, etc.).
-
----
-
 # 💳 PalPay — Web App with Secure Auth, 2FA, and Session-based Sanctum
 
 A secure full-stack authentication and account management platform built with **Laravel 12 (PHP 8.2)**, **PostgreSQL 15**, **Docker Compose**, and **React + Vite + Tailwind v4**.
