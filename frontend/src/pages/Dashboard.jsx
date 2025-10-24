@@ -37,7 +37,7 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
     lastLogin: user?.last_login_at_fmt || user?.last_login_at || "Loading...",
     lastLoginIp: user?.last_login_ip || "Loading...",
     lastLoginBrowser: user?.last_login_browser || "Loading...",
-    accountCreated: user?.created_at || "Loading...",
+    accountCreated: user?.created_at_fmt || user?.created_at || "Loading...",
   };
 
   // Example transactions (static for now)

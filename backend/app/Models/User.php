@@ -31,7 +31,6 @@ class User extends Authenticatable {
 		'last_login_at_fmt',
 		'created_at_fmt',
 		'updated_at_fmt',
-		'email_verified_at_fmt',
 	];
 	
 	public function getLastLoginAtFmtAttribute(): ?string
