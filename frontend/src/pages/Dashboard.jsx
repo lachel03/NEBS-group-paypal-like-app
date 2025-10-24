@@ -17,17 +17,17 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
 
   // User Data
   const accountInfo = {
-    fullName: user?.full_name || 'Lance Elane',
-    email: user?.email || 'lance@example.com',
-    mobileNumber: user?.mobile_number || '+639123456789',
-    accountNumber: '****7890 PlaceHolder',
-    balance: 'Place Holder',
+    fullName: user?.full_name || 'Loading...',
+    email: user?.email || 'Loading...',
+    mobileNumber: user?.mobile_number || 'Loading...',
+    accountNumber: 'Example Number',
+    balance: 'Example Balance',
     isVerified: user?.is_verified || true,
     twoFactorEnabled: twoFactorEnabled,
-    lastLogin: user?.last_login_at || '2025-01-15 14:30:22',
-    lastLoginIp: user?.last_login_ip || '192.168.1.100',
-    lastLoginBrowser: 'Chrome 120.0.0 on Windows 10',
-    accountCreated: user?.created_at || '2024-06-15'
+    lastLogin: user?.last_login_at || 'Loading...',
+    lastLoginIp: user?.last_login_ip || 'Loading...',
+    lastLoginBrowser: 'Loading...',
+    accountCreated: user?.created_at || 'Loading...'
   };
 
   // Transaction Data
@@ -405,7 +405,7 @@ export default function Dashboard({ user, onLogout, onToggle2FA, onSendMoney, on
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-cyan-400">Transaction History</h3>
+              <h3 className="text-xl font-bold text-cyan-400">Transaction History Example</h3>
             </div>
 
             <div className="space-y-3">
