@@ -255,7 +255,7 @@ curl -i -b cookies.txt http://localhost:8000/api/logs
 ## 👥 Contributors
 
 - **Developer Team:**
-- zeroh21  (Frontend) - [GitHub Profile](https://github.com/zeroh21) | [Alt] (https://github.com/0H21)
+- zeroh21  (Frontend) - [GitHub Profile](https://github.com/zeroh21) | [Alt](https://github.com/0H21)
 - Lachel03 (Backend) - [GitHub Profile](https://github.com/lachel03)
 
 ## 📜 License
